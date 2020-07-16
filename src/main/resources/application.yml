@@ -1,0 +1,175 @@
+server:
+ ## port: 8080
+ port: 8443
+ ssl:
+   key-store: classpath:keystore.p12
+   key-store-password: springboot
+   keyStoreType: PKCS12
+   keyAlias: tomcat
+   
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+spring:
+  
+  cloud.gateway:
+    discovery:
+      locator:
+        enabled: true
+        lowerCaseServiceId: true
+   
+        
+    routes:
+       
+    - id: authentication
+      uri: lb://AZN-SERVICE 
+      predicates:
+        - Path= /api/authentication/**
+      filters:
+        - RewritePath=/api/authentication/(?<segment>.*), /$\{segment}
+         
+        - name: Hystrix
+          args:
+            name: HystrixAuthenticationFallback
+            fallbackUri: forward:/fallback/authentication
+       
+    - id: account
+      uri: lb://ACCOUNT-SERVICE 
+      predicates:
+        - Path= /api/account/**
+      filters:
+        - RewritePath=/api/account/(?<segment>.*), /$\{segment}
+        - name: Hystrix
+          args:
+            name: HystrixAuthenticationFallback
+            fallbackUri: forward:/fallback/account
+            
+            
+            
+            
+            
+     ## remove => all access should be mediated via the ACCOUNT-SERVICE
+    - id: account-history
+      uri: lb://ACCOUNT-HISTORY-SERVICE 
+      predicates:
+        - Path= /api/history/**
+      filters:
+        - RewritePath=/api/history/(?<segment>.*), /$\{segment}
+        - name: Hystrix
+          args:
+            name: HystrixAuthenticationFallback
+            fallbackUri: forward:/fallback/history
+            
+            
+            
+            
+            
+     ## remove => all access should be mediated via the ACCOUNT-SERVICE
+    - id: account-profile
+      uri: lb://ACCOUNT-PROFILE-SERVICE
+      predicates:
+        - Path= /api/profile/**
+      filters:
+        - RewritePath=/api/profile/(?<segment>.*), /profile/$\{segment}
+        - name: Hystrix
+          args:
+            name: HystrixAuthenticationFallback
+            fallbackUri: forward:/fallback/profile
+            
+            
+            
+            
+            
+    - id: administration
+      uri: lb://ADMINISTRATION-SERVICE
+      predicates:
+        - Path= /api/admin/**
+      filters:
+        - RewritePath=/api/admin/(?<segment>.*), /$\{segment}
+        - name: Hystrix
+          args:
+            name: HystrixAuthenticationFallback
+            fallbackUri: forward:/fallback/admin
+            
+    - id: telemetry
+      uri: lb://TELEMETRY-SERVICE
+      predicates:
+        - Path= /api/telemetry/**
+      filters:
+        - RewritePath=/api/telemetry/(?<segment>.*), /$\{segment}
+        - name: Hystrix
+          args:
+            name: HystrixAuthenticationFallback
+            fallbackUri: forward:/fallback/admin
+        
+        
+       ## remove => all access should be mediated via the other services
+   ## - id: notification service
+   ##   uri: lb://NOTIFICATION-SERVICE
+   ##   predicates:
+   ##     - Path= /api/notification/**
+   ##   filters:
+   ##     - RewritePath=/api/notification/(?<segment>.*), /$\{segment}
+   ##     - name: Hystrix
+   ##       args:
+   ##         name: HystrixAuthenticationFallback
+   ##         fallbackUri: forward:/fallback/notification
+    
+      
+      
+    - id: content 
+      uri: lb://CONTENT-SERVICE
+      predicates:
+        - Path=/content/**
+      filters:
+        - RewritePath=/content/(?<segment>.*), /$\{segment}
+        
+            
+    #- id: content-secured
+    #  uri: lb://CONTENT-SERVICE
+    #  predicates:
+    #    - Path=/content/secured/**
+    #  filters:
+    #    - RewritePath=/content/(?<segment>.*), /$\{segment}
+    #    - name: GatewayAuthenticationFilter
+    #      args:
+    #        scopes: user
+
+
+
+    - id: peer-signaling 
+      uri: lb://PEER-SIGNALING-SERVICE
+      predicates:
+        - Path=/api/peer-signaling/**
+      filters:
+        - RewritePath=/api/peer-signaling/(?<segment>.*), /$\{segment}
+           
+            
+jwt:
+  secret: 7h1nkm1cr053rv1c35
+  
+  
+hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds: 11000
+ribbon:
+  ConnectTimeout: 10000
+  ReadTimeout: 10000
+  
+management:
+   
+  endpoints:
+     
+    enabled-by-default: true
+    metrics:
+      sensitive: false
+     
+    web:
+      exposure:
+        include: info,health,prometheus
+ 
+ 
+endpoints:
+  prometheus:
+    sensitive: false
+
+management.metrics.tags.application: ${spring.application.name} 
