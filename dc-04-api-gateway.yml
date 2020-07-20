@@ -36,6 +36,7 @@ services:
       - elasticsearch
     networks:
       - spring_ri_network
+
   ###########
   # fluentd #
   ###########
@@ -54,9 +55,11 @@ services:
       - spring_ri_network
     depends_on:
       - elasticsearch
+
    ##############
   # prometheus #
   ##############
+
   prometheus:
     image: prom/prometheus:latest
     volumes:
@@ -71,6 +74,7 @@ services:
   ###########
   # grafana #
   ###########
+
   grafana:
     image: grafana/grafana
     ports:
@@ -114,8 +118,7 @@ services:
 
     depends_on:
       - fluentd
-    ##  - postgresDB
-    ##  - rabbitmq
+
 
 
   
@@ -178,7 +181,7 @@ services:
       - spring.data.mongodb.port=27017
       - spring.data.mongodb.database=content-service
       - spring.data.mongodb.repositories.enable=true
-     ## - server.port=4040
+  
     networks:
       - spring_ri_network
     ports:
@@ -187,11 +190,11 @@ services:
       - config-started
     links:
       - fluentd
-   # logging:
-   #   driver: "fluentd"
-   #   options:
-   #     fluentd-address: localhost:24224
-   #     tag: content.svc
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: content.svc
 
   #######################
   # api-gateway service #
@@ -214,11 +217,11 @@ services:
       - discovery-service
     links:
       - fluentd
-    #logging:
-    #  driver: "fluentd"
-    #  options:
-    #    fluentd-address: localhost:24224
-    #    tag: api-gateway.svc
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: api-gateway.svc
 
  
 
